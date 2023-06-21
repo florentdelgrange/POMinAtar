@@ -1,8 +1,3 @@
-################################################################################################################
-# Authors:                                                                                                     #
-# Kenny Young (kjyoung@ualberta.ca)                                                                            #
-# Tian Tian (ttian@ualberta.ca)                                                                                #
-################################################################################################################
 import numpy as np
 
 
@@ -16,8 +11,14 @@ import numpy as np
 # the ball hits the bottom of the screen. The balls direction is indicated by a trail channel.
 #
 #####################################################################################################################
-class Env:
-    def __init__(self, ramping=None):
+from gym.core import ObsType
+
+from popgym.core.env import POPGymEnv
+
+
+class Env(POPGymEnv):
+
+    def __init__(self, ramping=None, no_ball: bool = False):
         self.channels ={
             'paddle':0,
             'ball':1,
@@ -26,6 +27,7 @@ class Env:
         }
         self.action_map = ['n','l','u','r','d','f']
         self.random = np.random.RandomState()
+        self.no_ball = no_ball
         self.reset()
 
     # Update environment according to agent action
@@ -108,8 +110,17 @@ class Env:
         state[:,:,self.channels['brick']] = self.brick_map
         return state
 
+    @property
+    def observation(self):
+        channels_to_exclude = ['ball'] if self.no_ball else []
+        channels_to_keep = [i for key, i in self.channels.items() if key not in channels_to_exclude]
+        obs = self.state()[..., channels_to_keep]
+        if not self.no_ball and self.random.random() <= 0.75:
+            obs[self.ball_y, self.ball_x, self.channels['ball']] = 0
+        return obs
+
     # Reset to start state for new episode
-    def reset(self):
+    def reset(self, **kwargs):
         self.ball_y = 3
         ball_start = self.random.randint(2)
         self.ball_x, self.ball_dir = [(0,2),(9,3)][ball_start]
@@ -129,3 +140,7 @@ class Env:
     def minimal_action_set(self):
         minimal_actions = ['n','l','r']
         return [self.action_map.index(x) for x in minimal_actions]
+
+    def get_state(self) -> ObsType:
+        return self.state()
+

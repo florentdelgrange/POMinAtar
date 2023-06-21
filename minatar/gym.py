@@ -95,3 +95,16 @@ def register_envs():
             entry_point="minatar.gym:BaseEnv",
             kwargs=dict(game=game, use_minimal_action_set=True),
         )
+
+        if game == "breakout":
+            register(
+                id="MinAtar/{}NoBall-v0".format(name),
+                entry_point="minatar.gym:BaseEnv",
+                kwargs=dict(game=game, use_minimal_action_set=False, no_ball=True),
+            )
+            register(
+                id="MinAtar/{}NoBall-v1".format(name),
+                entry_point="minatar.gym:BaseEnv",
+                kwargs=dict(game=game, use_minimal_action_set=True, no_ball=True),
+            )
+
