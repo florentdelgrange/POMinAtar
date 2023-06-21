@@ -29,9 +29,9 @@ class Env(POPGymEnv):
         self.random = np.random.RandomState()
         self.no_ball = no_ball
         self.randomized_brick_map = randomized_brick_map
-        self.reset()
         self.channels_to_exclude = ['ball', 'trail'] if self.no_ball else ['trail']
         self.channels_to_keep = [i for key, i in self.channels.items() if key not in self.channels_to_exclude]
+        self.reset()
 
     # Update environment according to agent action
     def act(self, a):
