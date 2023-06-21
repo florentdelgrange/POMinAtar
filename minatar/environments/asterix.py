@@ -1,8 +1,3 @@
-################################################################################################################
-# Authors:                                                                                                     #
-# Kenny Young (kjyoung@ualberta.ca)                                                                            #
-# Tian Tian (ttian@ualberta.ca)                                                                                #
-################################################################################################################
 import numpy as np
 
 
@@ -10,6 +5,10 @@ import numpy as np
 # Constants
 #
 #####################################################################################################################
+from gym.core import ObsType
+
+from popgym.core.env import POPGymEnv
+
 ramp_interval = 100
 init_spawn_speed = 10
 init_move_interval = 5
@@ -25,8 +24,11 @@ shot_cool_down = 5
 # and spawn rate of enemies and treasure.
 #
 #####################################################################################################################
-class Env:
-    def __init__(self, ramping=True):
+class Env(POPGymEnv):
+    def get_state(self) -> ObsType:
+        return self.state()
+
+    def __init__(self, ramping=True, time_limit: int = 5000):
         self.channels ={
             'player':0,
             'enemy':1,
@@ -37,6 +39,8 @@ class Env:
         self.ramping = ramping
         self.random = np.random.RandomState()
         self.reset()
+        self.time_limit = time_limit
+        self._timer = time_limit
 
     # Update environment according to agent action
     def act(self, a):
@@ -89,7 +93,7 @@ class Env:
         # Update various timers
         self.spawn_timer -= 1
         self.move_timer -= 1
-
+        self._timer -= 1
 
         #Ramp difficulty if interval has elapsed
         if self.ramping and (self.spawn_speed>1 or self.move_speed>1):
@@ -102,6 +106,9 @@ class Env:
                     self.spawn_speed-=1
                 self.ramp_index+=1
                 self.ramp_timer=ramp_interval
+
+        self.terminal = self.terminal or self._timer <= 0
+
         return r, self.terminal
 
     # Spawn a new enemy or treasure at a random location with random direction (if all rows are filled do nothing)
@@ -133,7 +140,7 @@ class Env:
         return state
 
     # Reset to start state for new episode
-    def reset(self):
+    def reset(self, **kwargs):
         self.player_x = 5
         self.player_y = 5
         self.entities = [None]*8
@@ -145,12 +152,20 @@ class Env:
         self.ramp_timer = ramp_interval
         self.ramp_index = 0
         self.terminal = False
+        self._timer = self.time_limit
+
+    @property
+    def observation(self):
+        channels_to_exclude = ['trail']
+        channels_to_keep = [i for key, i in self.channels.items() if key not in channels_to_exclude]
+        return self.state()[..., channels_to_keep]
 
     # Dimensionality of the game-state (10x10xn)
     def state_shape(self):
-        return [10,10,len(self.channels)]
+        return [10,10,len(self.channels) - 1]
 
     # Subset of actions that actually have a unique impact in this environment
     def minimal_action_set(self):
         minimal_actions = ['n','l','u','r','d']
         return [self.action_map.index(x) for x in minimal_actions]
+
