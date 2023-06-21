@@ -42,9 +42,9 @@ class Env(POPGymEnv):
         self.random = np.random.RandomState()
         self.channels_to_exclude = ['trail']
         self.channels_to_keep = [i for key, i in self.channels.items() if key not in self.channels_to_exclude]
-        self.reset()
         self.time_limit = time_limit
         self._timer = time_limit
+        self.reset()
 
     # Update environment according to agent action
     def act(self, a):
