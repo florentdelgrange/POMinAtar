@@ -122,7 +122,7 @@ class Env(POPGymEnv):
     # Reset to start state for new episode
     def reset(self, **kwargs):
         self.ball_y = 3
-        ball_start = self.random.randint(2)
+        ball_start = self.random.randint(1)
         self.ball_x, self.ball_dir = [(0,2),(9,3)][ball_start]
         self.pos = 4
         self.brick_map = np.zeros((10,10))
