@@ -1,8 +1,3 @@
-################################################################################################################
-# Authors:                                                                                                     #
-# Kenny Young (kjyoung@ualberta.ca)                                                                            #
-# Tian Tian (ttian@ualberta.ca)                                                                                #
-################################################################################################################
 import numpy as np
 
 
@@ -10,6 +5,10 @@ import numpy as np
 # Constants
 #
 #####################################################################################################################
+from gym.core import ObsType
+
+from popgym.core.env import POPGymEnv
+
 player_speed = 3
 time_limit = 2500
 
@@ -24,11 +23,14 @@ time_limit = 2500
 # the screen. Car direction and speed is indicated by 5 trail channels, the location of the trail gives direction
 # while the specific channel indicates how frequently the car moves (from once every frame to once every 5 frames).
 # Each time the player successfully reaches the top of the screen, the car speeds are randomized. Termination occurs
-# after 2500 frames have elapsed.
+# after X frames have elapsed.
 #
 #####################################################################################################################
-class Env:
-    def __init__(self, ramping=None):
+class Env(POPGymEnv):
+    def get_state(self) -> ObsType:
+        return self.state()
+
+    def __init__(self, ramping=None, time_limit: int = 1000):
         self.channels ={
             'chicken':0,
             'car':1,
@@ -40,6 +42,9 @@ class Env:
         }
         self.action_map = ['n','l','u','r','d','f']
         self.random = np.random.RandomState()
+        self.channels_to_exclude = [f'speed{i:d}' for i in range(1, 6)]
+        self.channels_to_keep = [i for key, i in self.channels.items() if key not in self.channels_to_exclude]
+        self.time_limit = time_limit
         self.reset()
 
     # Update environment according to agent action
@@ -128,16 +133,20 @@ class Env:
                 self.cars[i][2:4]=[abs(speeds[i]),speeds[i]]
 
     # Reset to start state for new episode
-    def reset(self):
+    def reset(self, **kwargs):
         self._randomize_cars(initialize=True)
         self.pos = 9
         self.move_timer = player_speed
-        self.terminate_timer = time_limit
+        self.terminate_timer = self.time_limit
         self.terminal = False
+
+    @property
+    def observation(self):
+        return self.state()[..., self.channels_to_keep]
 
     # Dimensionality of the game-state (10x10xn)
     def state_shape(self):
-        return [10,10,len(self.channels)]
+        return [10,10,len(self.channels_to_keep)]
 
     # Subset of actions that actually have a unique impact in this environment
     def minimal_action_set(self):
