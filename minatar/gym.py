@@ -90,6 +90,8 @@ def register_envs():
             kwargs['no_ball'] = False
         if game == "seaquest":
             kwargs['oxygen_noise'] = False
+        if game == "space_invaders":
+            kwargs['noise'] = False
 
         def _register(params):
             if params:
