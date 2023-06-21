@@ -10,6 +10,10 @@ import numpy as np
 # Constants
 #
 #####################################################################################################################
+from gym.core import ObsType
+
+from popgym.core.env import POPGymEnv
+
 ramp_interval = 100
 max_oxygen = 200
 init_spawn_speed = 20
@@ -39,8 +43,11 @@ diver_move_interval = 5
 # active in their previous location to reduce partial observability.
 #
 #####################################################################################################################
-class Env:
-    def __init__(self, ramping=True):
+class Env(POPGymEnv):
+    def get_state(self) -> ObsType:
+        return self.state()
+
+    def __init__(self, ramping=True, oxygen_noise: bool = False):
         self.channels ={
             'sub_front':0,
             'sub_back':1,
@@ -49,13 +56,16 @@ class Env:
             'enemy_bullet':4,
             'enemy_fish':5,
             'enemy_sub':6,
-            'oxygen_guage':7,
-            'diver_guage':8,
+            'oxygen_gauge':7,
+            'diver_gauge':8,
             'diver':9
         }
         self.action_map = ['n','l','u','r','d','f']
         self.ramping = ramping
         self.random = np.random.RandomState()
+        self.oxygen_noise = oxygen_noise
+        self.channels_to_exclude = ['trail', 'diver_gauge', 'friendly_bullet']
+        self.channels_to_keep = [i for key, i in self.channels.items() if key not in self.channels_to_exclude]
         self.reset()
 
     # Update environment according to agent action
@@ -257,8 +267,8 @@ class Env:
         state[self.sub_y,self.sub_x,self.channels['sub_front']] = 1
         back_x = self.sub_x-1 if self.sub_or else self.sub_x+1
         state[self.sub_y,back_x,self.channels['sub_back']] = 1
-        state[9,0:max(0,self.oxygen)*10//max_oxygen, self.channels['oxygen_guage']] = 1
-        state[9,9-self.diver_count:9, self.channels['diver_guage']] = 1
+        state[9,0:max(0,self.oxygen)*10//max_oxygen, self.channels['oxygen_gauge']] = 1
+        state[9,9-self.diver_count:9, self.channels['diver_gauge']] = 1
         for bullet in self.f_bullets:
             state[bullet[1],bullet[0], self.channels['friendly_bullet']] = 1
         for bullet in self.e_bullets:
@@ -281,8 +291,16 @@ class Env:
 
         return state
 
+    @property
+    def observation(self):
+        state = self.state()
+        state[..., self.channels['enemy_bullet']] += state[..., self.channels['friendly_bullet']]
+        if self.oxygen_noise:
+            state[9,0:max(0, self.random.binomial(self.oxygen, .945))*10//max_oxygen, self.channels['oxygen_gauge']] = 1
+        return state[..., self.channels_to_keep]
+
     # Reset to start state for new episode
-    def reset(self):
+    def reset(self, **kwargs):
         self.oxygen = max_oxygen
         self.diver_count = 0
         self.sub_x = 5

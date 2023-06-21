@@ -84,27 +84,39 @@ class BaseEnv(gym.Env):
 
 def register_envs():
     for game in ["asterix", "breakout", "freeway", "seaquest", "space_invaders"]:
-        name = game.title().replace('_', '')
-        register(
-            id="MinAtar/{}-v0".format(name),
-            entry_point="minatar.gym:BaseEnv",
-            kwargs=dict(game=game, use_minimal_action_set=False),
-        )
-        register(
-            id="MinAtar/{}-v1".format(name),
-            entry_point="minatar.gym:BaseEnv",
-            kwargs=dict(game=game, use_minimal_action_set=True),
-        )
-
+        name = game.title().replace('_', '').capitalize()
+        kwargs = dict(game=game, use_minimal_action_set=False)
         if game == "breakout":
-            register(
-                id="MinAtar/{}NoBall-v0".format(name),
-                entry_point="minatar.gym:BaseEnv",
-                kwargs=dict(game=game, use_minimal_action_set=False, no_ball=True),
-            )
-            register(
-                id="MinAtar/{}NoBall-v1".format(name),
-                entry_point="minatar.gym:BaseEnv",
-                kwargs=dict(game=game, use_minimal_action_set=True, no_ball=True),
-            )
+            kwargs['no_ball'] = False
+        if game == "seaquest":
+            kwargs['oxygen_noise'] = False
 
+        def _register(params):
+            if params:
+                kwarg = params[0]
+                kwargs[kwarg] = False
+
+                register(
+                    id="MinAtar/{}-v{}".format(name, 1 if kwargs['use_minimal_action_set'] else 0),
+                    entry_point="minatar.gym:BaseEnv",
+                    kwargs=kwargs,
+                )
+                _register(params[1:])
+
+                kwarg[kwarg] = True
+
+                if kwarg == 'use_minimal_action_set':
+                    kwarg_name = ''
+                else:
+                    kwarg_name = ''.join(x.capitalize() or '_' for x in kwarg.split('_'))
+
+                register(
+                    id="MinAtar/{}{}-v{}".format(name, kwarg_name, 1 if kwargs['use_minimal_action_set'] else 0),
+                    entry_point="minatar.gym:BaseEnv",
+                    kwargs=kwargs,
+                )
+                _register(params[1:])
+
+        params = list(kwargs.keys())
+        params.remove('game')
+        _register(params=list(kwargs.keys()))
