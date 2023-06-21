@@ -18,7 +18,7 @@ from popgym.core.env import POPGymEnv
 
 class Env(POPGymEnv):
 
-    def __init__(self, ramping=None, no_ball: bool = False):
+    def __init__(self, ramping=None, no_ball: bool = False, randomized_brick_map: bool = True):
         self.channels ={
             'paddle':0,
             'ball':1,
@@ -28,6 +28,7 @@ class Env(POPGymEnv):
         self.action_map = ['n','l','u','r','d','f']
         self.random = np.random.RandomState()
         self.no_ball = no_ball
+        self.randomized_brick_map = randomized_brick_map
         self.reset()
 
     # Update environment according to agent action
@@ -80,7 +81,7 @@ class Env(POPGymEnv):
                 self.ball_dir=[3,2,1,0][self.ball_dir]
         elif(new_y == 9):
             if(np.count_nonzero(self.brick_map)==0):
-                self.brick_map[1:4,:] = 1
+                self.terminal = True
             if(self.ball_x == self.pos):
                 self.ball_dir=[3,2,1,0][self.ball_dir]
                 new_y = self.last_y
@@ -112,21 +113,25 @@ class Env(POPGymEnv):
 
     @property
     def observation(self):
-        channels_to_exclude = ['ball'] if self.no_ball else []
+        channels_to_exclude = ['ball', 'trail'] if self.no_ball else ['trail']
         channels_to_keep = [i for key, i in self.channels.items() if key not in channels_to_exclude]
-        obs = self.state()[..., channels_to_keep]
-        if not self.no_ball and self.random.random() <= 0.75:
-            obs[self.ball_y, self.ball_x, self.channels['ball']] = 0
-        return obs
+        state = self.state()
+        if not self.no_ball and self.random.random() <= .75:
+            state[self.ball_y, self.ball_x, self.channels['ball']] = 0
+        return state[..., channels_to_keep]
 
     # Reset to start state for new episode
     def reset(self, **kwargs):
         self.ball_y = 3
-        ball_start = self.random.randint(1)
+        ball_start = 0 if self.no_ball else self.random.randint(2)
         self.ball_x, self.ball_dir = [(0,2),(9,3)][ball_start]
         self.pos = 4
         self.brick_map = np.zeros((10,10))
-        self.brick_map[1:4,:] = 1
+        if self.randomized_brick_map:
+            mask = self.random.binomial(1, .75, size=(3, 10))
+        else:
+            mask = 1
+        self.brick_map[1:4, :] = mask
         self.strike = False
         self.last_x = self.ball_x
         self.last_y = self.ball_y
@@ -134,7 +139,7 @@ class Env(POPGymEnv):
 
     # Dimensionality of the game-state (10x10xn)
     def state_shape(self):
-        return [10,10, (len(self.channels) - 1 if self.no_ball else len(self.channels))]
+        return [10,10, (len(self.channels) - 2 if self.no_ball else len(self.channels) - 1)]
 
     # Subset of actions that actually have a unique impact in this environment
     def minimal_action_set(self):
