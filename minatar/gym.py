@@ -1,8 +1,8 @@
 # Adapted from https://github.com/qlan3/gym-games
 import numpy as np
-import gymnasium as gym
-from gymnasium import spaces
-from gymnasium.envs.registration import register
+import gym
+from gym import spaces
+from gym.envs.registration import register
 
 try:
     import seaborn as sns
@@ -39,32 +39,34 @@ class BaseEnv(gym.Env):
         reward, done = self.game.act(action)
         if self.render_mode == "human":
             self.render()
-        return self.game.state(), reward, done, False, {}
+        return self.game.observation, reward, done, False, {}
 
     def seed(self, seed=None):
         self.game.seed(seed)
 
-    def reset(self, seed=None, options=None):
+    def reset(self, seed=None, options=None, **kwargs):
         if seed is not None:
             self.seed(seed)
         self.game.reset()
         if self.render_mode == "human":
             self.render()
-        return self.game.state(), {}
+        return self.game.observation, {}
 
-    def render(self):
-        if self.render_mode is None:
+    def render(self, mode: str = None):
+        if self.render_mode is None and mode is None:
             gym.logger.warn(
                 "You are calling render method without specifying any render mode. "
                 "You can specify the render_mode at initialization, "
                 f'e.g. gym("{self.spec.id}", render_mode="rgb_array")'
             )
             return
-        if self.render_mode == "array":
+        if mode is None:
+            mode = self.render_mode
+        if mode == "array":
             return self.game.state()
-        elif self.render_mode == "human":
+        elif mode == "human":
             self.game.display_state(self.display_time)
-        elif self.render_mode == "rgb_array": # use the same color palette of Environment.display_state
+        elif mode == "rgb_array": # use the same color palette of Environment.display_state
             state = self.game.state()
             n_channels = state.shape[-1]
             cmap = sns.color_palette("cubehelix", n_channels)
