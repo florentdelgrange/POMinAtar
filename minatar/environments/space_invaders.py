@@ -10,6 +10,10 @@ import numpy as np
 # Constants
 #
 #####################################################################################################################
+from gym.core import ObsType
+
+from popgym.core.env import POPGymEnv
+
 shot_cool_down = 5
 enemy_move_interval = 12
 enemy_shot_interval = 10
@@ -28,8 +32,11 @@ enemy_shot_interval = 10
 # hits the player.
 #
 #####################################################################################################################
-class Env:
-    def __init__(self, ramping=True):
+class Env(POPGymEnv):
+    def get_state(self) -> ObsType:
+        return self.state()
+
+    def __init__(self, ramping=True, time_limit: int = 1000, noisy: bool = False):
         self.channels ={
             'cannon':0,
             'alien':1,
@@ -41,6 +48,11 @@ class Env:
         self.action_map = ['n','l','u','r','d','f']
         self.ramping = ramping
         self.random = np.random.RandomState()
+        self.channels_to_exclude = ['friendly_bullet', 'alien_left', 'alien_right']
+        self.channels_to_keep = [i for key, i in self.channels.items() if key not in self.channels_to_exclude]
+        self.time_limit = time_limit
+        self._timer = time_limit
+        self.noisy = noisy
         self.reset()
 
     # Update environment according to agent action
@@ -99,11 +111,16 @@ class Env:
         self.shot_timer -= self.shot_timer>0
         self.alien_move_timer-=1
         self.alien_shot_timer-=1
+        self._timer -= 1
+
         if(np.count_nonzero(self.alien_map)==0):
             if(self.enemy_move_interval>6 and self.ramping):
                 self.enemy_move_interval-=1
                 self.ramp_index+=1
             self.alien_map[0:4,2:8] = 1
+
+        self.terminal = self.terminal or self._timer <= 0
+
         return r, self.terminal
 
     # Find the alien closest to player in manhattan distance, currently used to decide which alien shoots
@@ -133,7 +150,7 @@ class Env:
         return state
 
     # Reset to start state for new episode
-    def reset(self):
+    def reset(self, **kwargs):
         self.pos = 5
         self.f_bullet_map = np.zeros((10,10))
         self.e_bullet_map = np.zeros((10,10))
@@ -146,10 +163,25 @@ class Env:
         self.ramp_index = 0
         self.shot_timer = 0
         self.terminal = False
+        self._timer = self.time_limit
+
+    @property
+    def observation(self):
+        state = self.state()
+        if self.noisy:
+            mask = self.random.binomial(1, .8, size=(4, 6))
+            # noisy observation of the aliens
+            state[0:4, 2:8, self.channels['alien']] *= mask
+            # flickering enemy bullets
+            state[..., self.channels['enemy_bullet']] *= self.random.binomial(1, 2. / 3, size=(10, 10, 1))
+        # merge friendly and enemy bullets
+        state[..., self.channels['enemy_bullet']] = np.clip(
+            state[..., self.channels['enemy_bullet']] + state[..., self.channels['friendly_bullet']], 0, 1)
+        return state[..., self.channels_to_keep]
 
     # Dimensionality of the game-state (10x10xn)
     def state_shape(self):
-        return [10,10,len(self.channels)]
+        return [10,10,len(self.channels_to_keep)]
 
     # Subset of actions that actually have a unique impact in this environment
     def minimal_action_set(self):
