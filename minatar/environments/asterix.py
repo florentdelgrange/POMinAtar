@@ -42,6 +42,9 @@ class Env(POPGymEnv):
         self.time_limit = time_limit
         self._timer = time_limit
 
+        self.channels_to_exclude = ['trail']
+        self.channels_to_keep = [i for key, i in self.channels.items() if key not in self.channels_to_exclude]
+
     # Update environment according to agent action
     def act(self, a):
         r = 0
@@ -156,13 +159,11 @@ class Env(POPGymEnv):
 
     @property
     def observation(self):
-        channels_to_exclude = ['trail']
-        channels_to_keep = [i for key, i in self.channels.items() if key not in channels_to_exclude]
-        return self.state()[..., channels_to_keep]
+        return self.state()[..., self.channels_to_keep]
 
     # Dimensionality of the game-state (10x10xn)
     def state_shape(self):
-        return [10,10,len(self.channels) - 1]
+        return [10,10,len(self.channels_to_keep)]
 
     # Subset of actions that actually have a unique impact in this environment
     def minimal_action_set(self):
