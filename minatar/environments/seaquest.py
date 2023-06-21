@@ -294,7 +294,8 @@ class Env(POPGymEnv):
     @property
     def observation(self):
         state = self.state()
-        state[..., self.channels['enemy_bullet']] += state[..., self.channels['friendly_bullet']]
+        state[..., self.channels['enemy_bullet']] = np.clip(
+            state[..., self.channels['enemy_bullet']] + state[..., self.channels['friendly_bullet']], 0, 1)
         if self.oxygen_noise:
             state[9,0:max(0, self.random.binomial(self.oxygen, .945))*10//max_oxygen, self.channels['oxygen_gauge']] = 1
         return state[..., self.channels_to_keep]
