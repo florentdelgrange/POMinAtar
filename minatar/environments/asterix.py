@@ -1,3 +1,5 @@
+from typing import Optional
+
 import numpy as np
 
 
@@ -28,7 +30,7 @@ class Env(POPGymEnv):
     def get_state(self) -> ObsType:
         return self.state()
 
-    def __init__(self, ramping=True, time_limit: int = 5000):
+    def __init__(self, ramping=True, time_limit: int = 1000):
         self.channels ={
             'player':0,
             'enemy':1,
