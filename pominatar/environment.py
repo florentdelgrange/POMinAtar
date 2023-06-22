@@ -81,12 +81,13 @@ class Environment:
 
     # Display the current environment state for time milliseconds using matplotlib
     def display_state(self, time=50):
+        n_channels = self.state_shape()[-1]
         if not self.visualized:
-            self.cmap = sns.color_palette("cubehelix", self.n_channels)
+            self.cmap = sns.color_palette("cubehelix", n_channels)
             self.cmap.insert(0, (0,0,0))
             self.cmap = colors.ListedColormap(self.cmap)
-            bounds = [i for i in range(self.n_channels+2)]
-            self.norm = colors.BoundaryNorm(bounds, self.n_channels+1)
+            bounds = [i for i in range(n_channels+2)]
+            self.norm = colors.BoundaryNorm(bounds, n_channels+1)
             _, self.ax = plt.subplots(1,1)
             plt.show(block=False)
             self.visualized = True
@@ -96,7 +97,7 @@ class Environment:
             self.closed = False
         state = self.env.state()
         numerical_state = np.amax(
-            state * np.reshape(np.arange(self.n_channels) + 1, (1,1,-1)), 2) + 0.5
+            state * np.reshape(np.arange(n_channels) + 1, (1,1,-1)), 2) + 0.5
         self.ax.imshow(
             numerical_state, cmap=self.cmap, norm=self.norm, interpolation='none')
         plt.pause(time / 1000)
