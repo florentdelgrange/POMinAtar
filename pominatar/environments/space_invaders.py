@@ -163,11 +163,11 @@ class Env:
     def observation(self):
         state = self.state()
         if self.noisy:
-            mask = self.random.binomial(1, .8, size=(4, 6))
+            mask = self.random.binomial(1, .8, size=(4, 6)).astype(bool)
             # noisy observation of the aliens
             state[0:4, 2:8, self.channels['alien']] *= mask
             # flickering enemy bullets
-            state[..., self.channels['enemy_bullet']] *= self.random.binomial(1, 2. / 3, size=(10, 10, 1))
+            state[..., self.channels['enemy_bullet']] *= self.random.binomial(1, 2. / 3, size=(10, 10)).astype(bool)
         # merge friendly and enemy bullets
         state[..., self.channels['enemy_bullet']] = np.clip(
             state[..., self.channels['enemy_bullet']] + state[..., self.channels['friendly_bullet']], 0, 1)
