@@ -24,11 +24,11 @@ except:
 #####################################################################################################################
 class Environment:
     def __init__(self, env_name, sticky_action_prob=0.1,
-                difficulty_ramping=True):
+                difficulty_ramping=True, **kwargs):
         env_module = import_module('pominatar.environments.' + env_name)
         self.random = np.random.RandomState()
         self.env_name = env_name
-        self.env = env_module.Env(ramping=difficulty_ramping)
+        self.env = env_module.Env(ramping=difficulty_ramping, **kwargs)
         self.n_channels = self.env.observation_shape()[2]
         self.sticky_action_prob = sticky_action_prob
         self.last_action = 0

@@ -5,8 +5,6 @@ from gym import spaces
 from gym.core import ObsType
 from gym.envs.registration import register
 
-from popgym.core.observability import Observability
-
 try:
     import seaborn as sns
 except:
@@ -20,7 +18,7 @@ from pominatar import Environment
 class BaseEnv(gym.Env):
     metadata = {"render_modes": ["human", "array", "rgb_array"]}
 
-    observability_level: Observability = Observability.PARTIAL
+    observability_level: int = 0
     obs_requires_prev_action: bool = False
 
     def __init__(self, game, render_mode=None, display_time=50,
@@ -51,7 +49,7 @@ class BaseEnv(gym.Env):
         reward, done = self.game.act(action)
         if self.render_mode == "human":
             self.render()
-        return self.game.observation, reward, done, False, {}
+        return self.game.observation, reward, done, {}
 
     def seed(self, seed=None):
         self.game.seed(seed)
