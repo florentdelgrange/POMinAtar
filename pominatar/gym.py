@@ -11,7 +11,7 @@ except:
     logging.warning("Cannot import seaborn."
         "Will not be able to train from pixel observations.")
 
-from minatar import Environment
+from pominatar import Environment
 
 
 class BaseEnv(gym.Env):
@@ -91,7 +91,7 @@ def register_envs():
         if game == "seaquest":
             kwargs['oxygen_noise'] = False
         if game == "space_invaders":
-            kwargs['noise'] = False
+            kwargs['noisy'] = False
 
         def _register(params):
             if params:
@@ -99,13 +99,13 @@ def register_envs():
                 kwargs[kwarg] = False
 
                 register(
-                    id="MinAtar/{}-v{}".format(name, 1 if kwargs['use_minimal_action_set'] else 0),
-                    entry_point="minatar.gym:BaseEnv",
+                    id="POMinAtar/{}-v{}".format(name, 1 if kwargs['use_minimal_action_set'] else 0),
+                    entry_point="pominatar.gym:BaseEnv",
                     kwargs=kwargs,
                 )
                 _register(params[1:])
 
-                kwarg[kwarg] = True
+                kwargs[kwarg] = True
 
                 if kwarg == 'use_minimal_action_set':
                     kwarg_name = ''
@@ -113,12 +113,12 @@ def register_envs():
                     kwarg_name = ''.join(x.capitalize() or '_' for x in kwarg.split('_'))
 
                 register(
-                    id="MinAtar/{}{}-v{}".format(name, kwarg_name, 1 if kwargs['use_minimal_action_set'] else 0),
-                    entry_point="minatar.gym:BaseEnv",
+                    id="POMinAtar/{}{}-v{}".format(name, kwarg_name, 1 if kwargs['use_minimal_action_set'] else 0),
+                    entry_point="pominatar.gym:BaseEnv",
                     kwargs=kwargs,
                 )
                 _register(params[1:])
 
         params = list(kwargs.keys())
         params.remove('game')
-        _register(params=list(kwargs.keys()))
+        _register(params=params)

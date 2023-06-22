@@ -1,6 +1,6 @@
 from setuptools import setup
 
-packages = ['minatar', 'minatar.environments']
+packages = ['pominatar', 'pominatar.environments']
 install_requires = [
     'cycler>=0.10.0',
     'kiwisolver>=1.0.1',
@@ -20,16 +20,16 @@ examples_requires = [
 ]
 
 entry_points = {
-    'gymnasium.envs': ['MinAtar=minatar.gym:register_envs']
+    'gym.envs': ['MinAtar=pominatar.gym:register_envs']
 }
 
 setup(
-    name='MinAtar',
-    version='1.0.15',
-    description='A miniaturized version of the Arcade Learning Environment.',
-    url='https://github.com/kenjyoung/MinAtar',
-    author='Kenny Young',
-    author_email='kjyoung@ualberta.ca',
+    name='pominatar',
+    version='0.1',
+    description='A miniaturized, partially observable version of the Arcade Learning Environment.',
+    url='https://github.com/florentdelgrange/POMinAtar',
+    author='Raphael Avalos & Florent Delgrange',
+    author_email='raphael.avalos@vub.be',
     license='GPL',
     packages=packages,
     entry_points=entry_points,
