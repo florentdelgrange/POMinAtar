@@ -54,13 +54,16 @@ class BaseEnv(gym.Env):
     def seed(self, seed=None):
         self.game.seed(seed)
 
-    def reset(self, seed=None, options=None, **kwargs):
+    def reset(self, seed=None, options=None, return_info: bool = False, **kwargs):
         if seed is not None:
             self.seed(seed)
         self.game.reset()
         if self.render_mode == "human":
             self.render()
-        return self.game.observation, {}
+        if return_info:
+            return self.game.observation, {}
+        else:
+            return self.game.observation
 
     def render(self, mode: str = None):
         if self.render_mode is None and mode is None:
@@ -109,7 +112,7 @@ def register_envs():
                 kwargs[kwarg] = False
 
                 register(
-                    id="POMinAtar/{}-v{}".format(name, 1 if kwargs['use_minimal_action_set'] else 0),
+                    id="{}-v{}".format(name, 1 if kwargs['use_minimal_action_set'] else 0),
                     entry_point="pominatar.gym:BaseEnv",
                     kwargs=kwargs,
                 )
@@ -123,7 +126,7 @@ def register_envs():
                     kwarg_name = ''.join(x.capitalize() or '_' for x in kwarg.split('_'))
 
                 register(
-                    id="POMinAtar/{}{}-v{}".format(name, kwarg_name, 1 if kwargs['use_minimal_action_set'] else 0),
+                    id="{}{}-v{}".format(name, kwarg_name, 1 if kwargs['use_minimal_action_set'] else 0),
                     entry_point="pominatar.gym:BaseEnv",
                     kwargs=kwargs,
                 )

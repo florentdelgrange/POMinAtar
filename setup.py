@@ -20,7 +20,7 @@ examples_requires = [
 ]
 
 entry_points = {
-    'gym.envs': ['MinAtar=pominatar.gym:register_envs']
+    'gym.envs': ['POMinAtar=pominatar.gym:register_envs']
 }
 
 setup(
