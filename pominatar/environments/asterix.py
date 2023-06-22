@@ -157,9 +157,12 @@ class Env:
     def observation(self):
         return self.state()[..., self.channels_to_keep]
 
+    def observation_shape(self):
+        return [10,10,len(self.channels_to_keep)]
+
     # Dimensionality of the game-state (10x10xn)
     def state_shape(self):
-        return [10,10,len(self.channels_to_keep)]
+        return [10,10,len(self.channels)]
 
     # Subset of actions that actually have a unique impact in this environment
     def minimal_action_set(self):

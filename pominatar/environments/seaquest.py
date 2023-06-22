@@ -314,6 +314,9 @@ class Env:
 
     # Dimensionality of the game-state (10x10xn)
     def state_shape(self):
+        return [10,10,len(self.channels)]
+
+    def observation_shape(self):
         return [10,10,len(self.channels_to_keep)]
 
     # Subset of actions that actually have a unique impact in this environment
