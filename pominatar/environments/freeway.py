@@ -7,8 +7,6 @@ import numpy as np
 #####################################################################################################################
 from gym.core import ObsType
 
-from popgym.core.env import POPGymEnv
-
 player_speed = 3
 time_limit = 2500
 
@@ -26,9 +24,7 @@ time_limit = 2500
 # after X frames have elapsed.
 #
 #####################################################################################################################
-class Env(POPGymEnv):
-    def get_state(self) -> ObsType:
-        return self.state()
+class Env:
 
     def __init__(self, ramping=None, time_limit: int = 1000):
         self.channels ={

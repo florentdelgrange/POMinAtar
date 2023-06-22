@@ -11,12 +11,8 @@ import numpy as np
 # the ball hits the bottom of the screen. The balls direction is indicated by a trail channel.
 #
 #####################################################################################################################
-from gym.core import ObsType
 
-from popgym.core.env import POPGymEnv
-
-
-class Env(POPGymEnv):
+class Env:
 
     def __init__(self, ramping=None, no_ball: bool = False, randomized_brick_map: bool = True):
         self.channels ={
@@ -145,7 +141,3 @@ class Env(POPGymEnv):
     def minimal_action_set(self):
         minimal_actions = ['n','l','r']
         return [self.action_map.index(x) for x in minimal_actions]
-
-    def get_state(self) -> ObsType:
-        return self.state()
-

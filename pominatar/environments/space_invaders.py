@@ -10,10 +10,6 @@ import numpy as np
 # Constants
 #
 #####################################################################################################################
-from gym.core import ObsType
-
-from popgym.core.env import POPGymEnv
-
 shot_cool_down = 5
 enemy_move_interval = 12
 enemy_shot_interval = 10
@@ -32,9 +28,7 @@ enemy_shot_interval = 10
 # hits the player.
 #
 #####################################################################################################################
-class Env(POPGymEnv):
-    def get_state(self) -> ObsType:
-        return self.state()
+class Env:
 
     def __init__(self, ramping=True, time_limit: int = 1000, noisy: bool = False):
         self.channels ={

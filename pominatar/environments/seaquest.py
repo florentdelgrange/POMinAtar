@@ -5,9 +5,6 @@ import numpy as np
 # Constants
 #
 #####################################################################################################################
-from gym.core import ObsType
-
-from popgym.core.env import POPGymEnv
 
 ramp_interval = 100
 max_oxygen = 200
@@ -38,9 +35,7 @@ diver_move_interval = 5
 # active in their previous location to reduce partial observability.
 #
 #####################################################################################################################
-class Env(POPGymEnv):
-    def get_state(self) -> ObsType:
-        return self.state()
+class Env:
 
     def __init__(self, ramping=True, oxygen_noise: bool = False):
         self.channels ={

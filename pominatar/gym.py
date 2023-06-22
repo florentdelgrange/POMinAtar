@@ -2,7 +2,10 @@
 import numpy as np
 import gym
 from gym import spaces
+from gym.core import ObsType
 from gym.envs.registration import register
+
+from popgym.core.env import POPGymEnv
 
 try:
     import seaborn as sns
@@ -14,7 +17,7 @@ except:
 from pominatar import Environment
 
 
-class BaseEnv(gym.Env):
+class BaseEnv(gym.Env, POPGymEnv):
     metadata = {"render_modes": ["human", "array", "rgb_array"]}
 
     def __init__(self, game, render_mode=None, display_time=50,
@@ -33,6 +36,9 @@ class BaseEnv(gym.Env):
         self.observation_space = spaces.Box(
             0, 1, shape=self.game.state_shape(), dtype=np.uint8
         )
+
+    def get_state(self) -> ObsType:
+        return self.game.state()
 
     def step(self, action):
         action = self.action_set[action]
