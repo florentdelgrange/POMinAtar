@@ -41,6 +41,10 @@ class BaseEnv(gym.Env):
             0, 1, shape=self.game.observation_shape(), dtype=np.uint8
         )
 
+    @property
+    def max_episode_length(self):
+        return self.game.max_episode_length
+
     def get_state(self) -> ObsType:
         return self.game.state()
 

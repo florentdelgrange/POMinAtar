@@ -14,7 +14,7 @@ import numpy as np
 
 class Env:
 
-    def __init__(self, ramping=None, no_ball: bool = False, randomized_brick_map: bool = True):
+    def __init__(self, ramping=None, no_ball: bool = False, randomized_brick_map: bool = True, time_limit: int = 1000):
         self.channels ={
             'paddle':0,
             'ball':1,
@@ -27,6 +27,8 @@ class Env:
         self.randomized_brick_map = randomized_brick_map
         self.channels_to_exclude = ['ball', 'trail'] if self.no_ball else ['trail']
         self.channels_to_keep = [i for key, i in self.channels.items() if key not in self.channels_to_exclude]
+        self.time_limit = time_limit
+        self._timer = time_limit
         self.reset()
 
     # Update environment according to agent action
@@ -94,6 +96,10 @@ class Env:
 
         self.ball_x = new_x
         self.ball_y = new_y
+
+        self._timer -= 1
+
+        self.terminal = self.terminal or self._timer <= 0
         return r, self.terminal
 
     # Query the current level of the difficulty ramp, difficulty does not ramp in this game, so return None
@@ -132,6 +138,7 @@ class Env:
         self.last_x = self.ball_x
         self.last_y = self.ball_y
         self.terminal = False
+        self._timer = self.time_limit
 
     # Dimensionality of the game-state (10x10xn)
     def state_shape(self):

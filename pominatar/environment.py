@@ -56,6 +56,10 @@ class Environment:
     def observation(self):
         return self.env.observation
 
+    @property
+    def max_episode_length(self):
+        return self.env.time_limit
+
     # Wrapper for env.reset
     def reset(self):
         return self.env.reset()

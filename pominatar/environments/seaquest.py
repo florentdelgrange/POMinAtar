@@ -37,7 +37,7 @@ diver_move_interval = 5
 #####################################################################################################################
 class Env:
 
-    def __init__(self, ramping=True, oxygen_noise: bool = False):
+    def __init__(self, ramping=True, oxygen_noise: bool = False, time_limit: int = 1000):
         self.channels ={
             'sub_front':0,
             'sub_back':1,
@@ -56,6 +56,8 @@ class Env:
         self.oxygen_noise = oxygen_noise
         self.channels_to_exclude = ['trail', 'diver_gauge', 'friendly_bullet']
         self.channels_to_keep = [i for key, i in self.channels.items() if key not in self.channels_to_exclude]
+        self.time_limit = time_limit
+        self._timer = time_limit
         self.reset()
 
     # Update environment according to agent action
@@ -202,6 +204,10 @@ class Env:
                     self.terminal = True
                 else:
                     r+=self._surface()
+
+        self._timer -= 1
+        self.terminal = self.terminal or self._timer <= 0
+
         return r, self.terminal
 
     # Called when player hits surface (top row) if they have no divers, this ends the game,
@@ -311,6 +317,7 @@ class Env:
         self.shot_timer = 0
         self.surface = True
         self.terminal = False
+        self._timer = self.time_limit
 
     # Dimensionality of the game-state (10x10xn)
     def state_shape(self):
