@@ -4,7 +4,7 @@ import gym
 from gym import spaces
 from gym.core import ObsType
 from gym.envs.registration import register
-
+print('entering gym.py')
 try:
     import seaborn as sns
 except:
@@ -114,7 +114,7 @@ def register_envs():
                 register(
                     id="{}-v{}".format(name, 1 if kwargs['use_minimal_action_set'] else 0),
                     entry_point="pominatar.gym:BaseEnv",
-                    kwargs=kwargs,
+                    kwargs=kwargs.copy(),
                 )
                 _register(params[1:])
 
@@ -128,7 +128,7 @@ def register_envs():
                 register(
                     id="{}{}-v{}".format(name, kwarg_name, 1 if kwargs['use_minimal_action_set'] else 0),
                     entry_point="pominatar.gym:BaseEnv",
-                    kwargs=kwargs,
+                    kwargs=kwargs.copy(),
                 )
                 _register(params[1:])
 
