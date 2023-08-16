@@ -26,7 +26,7 @@ time_limit = 2500
 #####################################################################################################################
 class Env:
 
-    def __init__(self, ramping=None, time_limit: int = 1000):
+    def __init__(self, ramping=None, time_limit: int = 200, termination_at_death: bool = True):
         self.channels ={
             'chicken':0,
             'car':1,
@@ -41,6 +41,7 @@ class Env:
         self.channels_to_exclude = [f'speed{i:d}' for i in range(1, 6)]
         self.channels_to_keep = [i for key, i in self.channels.items() if key not in self.channels_to_exclude]
         self.time_limit = time_limit
+        self.termination_at_death = termination_at_death
         self.reset()
 
     # Update environment according to agent action
@@ -68,6 +69,7 @@ class Env:
         for car in self.cars:
             if(car[0:2]==[4,self.pos]):
                 self.pos = 9
+                self.terminal = self.termination_at_death
             if(car[2]==0):
                 car[2]=abs(car[3])
                 car[0]+=1 if car[3]>0 else -1
@@ -77,6 +79,7 @@ class Env:
                     car[0]=0
                 if(car[0:2]==[4,self.pos]):
                     self.pos = 9
+                    self.terminal = self.termination_at_death
             else:
                 car[2]-=1
 
