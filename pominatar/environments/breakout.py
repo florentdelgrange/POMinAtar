@@ -14,7 +14,15 @@ import numpy as np
 
 class Env:
 
-    def __init__(self, ramping=None, no_ball: bool = False, randomized_brick_map: bool = True, time_limit: int = 1000):
+    def __init__(
+            self,
+            ramping=None,
+            flickering_ball: float = 0.,
+            no_ball: bool = False,
+            paddle_size: int = 2,
+            randomized_brick_map: bool = True,
+            time_limit: int = 1000
+    ):
         self.channels ={
             'paddle':0,
             'ball':1,
@@ -25,6 +33,8 @@ class Env:
         self.random = np.random.RandomState()
         self.no_ball = no_ball
         self.randomized_brick_map = randomized_brick_map
+        self.flickering_ball = flickering_ball
+        self.paddle_size = paddle_size
         self.channels_to_exclude = ['ball', 'trail'] if self.no_ball else ['trail']
         self.channels_to_keep = [i for key, i in self.channels.items() if key not in self.channels_to_exclude]
         self.time_limit = time_limit
@@ -41,7 +51,7 @@ class Env:
 
         # Resolve player action
         if(a=='l'):
-            self.pos = max(0, self.pos-1)
+            self.pos = max(0 + self.paddle_size - 1, self.pos-1)
         elif(a=='r'):
             self.pos = min(9,self.pos+1)
 
@@ -82,10 +92,10 @@ class Env:
         elif(new_y == 9):
             if(np.count_nonzero(self.brick_map)==0):
                 self.terminal = True
-            if(self.ball_x == self.pos):
+            if(self.pos - self.paddle_size + 1 <= self.ball_x <= self.pos):
                 self.ball_dir=[3,2,1,0][self.ball_dir]
                 new_y = self.last_y
-            elif(new_x == self.pos):
+            elif(self.pos - self.paddle_size + 1 <= new_x <= self.pos):
                 self.ball_dir=[2,3,0,1][self.ball_dir]
                 new_y = self.last_y
             else:
@@ -110,7 +120,7 @@ class Env:
     def state(self):
         state = np.zeros((10,10,len(self.channels)),dtype=bool)
         state[self.ball_y,self.ball_x,self.channels['ball']] = 1
-        state[9,self.pos, self.channels['paddle']] = 1
+        state[9,self.pos - self.paddle_size + 1: self.pos + 1, self.channels['paddle']] = 1
         state[self.last_y,self.last_x,self.channels['trail']] = 1
         state[:,:,self.channels['brick']] = self.brick_map
         return state
@@ -118,7 +128,7 @@ class Env:
     @property
     def observation(self):
         state = self.state()
-        if not self.no_ball and self.random.random() <= .75:
+        if self.random.random() <= self.flickering_ball:
             state[self.ball_y, self.ball_x, self.channels['ball']] = 0
         return state[..., self.channels_to_keep]
 
