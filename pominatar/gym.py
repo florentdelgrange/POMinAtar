@@ -105,37 +105,43 @@ def register_envs():
         kwargs = dict(game=game, use_minimal_action_set=False)
         if game == "breakout":
             kwargs['no_ball'] = False
+            kwargs['randomized_brick_map'] = False
+            kwargs['flickering_ball'] = [0., 0.1, 0.25, 0.5, 0.75]
         if game == "seaquest":
             kwargs['oxygen_noise'] = False
         if game == "space_invaders":
             kwargs['noisy'] = False
 
-        def _register(params):
+        def _register(params, kwargs, option_name=''):
             if params:
                 kwarg = params[0]
-                kwargs[kwarg] = False
-
-                register(
-                    id="{}-v{}".format(name, 1 if kwargs['use_minimal_action_set'] else 0),
-                    entry_point="pominatar.gym:BaseEnv",
-                    kwargs=kwargs.copy(),
-                )
-                _register(params[1:])
-
-                kwargs[kwarg] = True
-
-                if kwarg == 'use_minimal_action_set':
-                    kwarg_name = ''
+                try:
+                    iter(kwargs[kwarg])
+                except TypeError:
+                    values = [False, True]
                 else:
-                    kwarg_name = ''.join(x.capitalize() or '_' for x in kwarg.split('_'))
+                    values = kwargs[kwarg]
 
+                for value in values:
+                    _kwargs = kwargs.copy()
+                    _kwargs[kwarg] = value
+                    print(kwarg, ":", value)
+
+                    if kwarg == 'use_minimal_action_set' or not value:
+                        kwarg_name = ''
+                    else:
+                        kwarg_name = ''.join(x.capitalize() or '_' for x in kwarg.split('_'))
+                        kwarg_name += str(value) if type(value) in [float, int] else ''
+                    _option_name = option_name + kwarg_name
+
+                    _register(params[1:], _kwargs, _option_name)
+            else:
                 register(
-                    id="{}{}-v{}".format(name, kwarg_name, 1 if kwargs['use_minimal_action_set'] else 0),
+                    id="{}{}-v{}".format(name, option_name, 1 if kwargs['use_minimal_action_set'] else 0),
                     entry_point="pominatar.gym:BaseEnv",
-                    kwargs=kwargs.copy(),
+                    kwargs=kwargs,
                 )
-                _register(params[1:])
 
         params = list(kwargs.keys())
         params.remove('game')
-        _register(params=params)
+        _register(params=params, kwargs=kwargs)
