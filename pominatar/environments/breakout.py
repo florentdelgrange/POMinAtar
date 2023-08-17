@@ -1,3 +1,5 @@
+from typing import Optional
+
 import numpy as np
 
 
@@ -19,9 +21,10 @@ class Env:
             ramping=None,
             flickering_ball: float = 0.,
             no_ball: bool = False,
-            paddle_size: int = 2,
+            paddle_size: Optional[int] = None,
+            easy: bool = False,
             randomized_brick_map: bool = True,
-            time_limit: int = 1000
+            time_limit: int = 1000,
     ):
         self.channels ={
             'paddle':0,
@@ -34,7 +37,12 @@ class Env:
         self.no_ball = no_ball
         self.randomized_brick_map = randomized_brick_map
         self.flickering_ball = flickering_ball
-        self.paddle_size = paddle_size
+        if paddle_size is None:
+            self.paddle_size = 1
+            if easy:
+                self.paddle_size = 2
+        else:
+            self.paddle_size = paddle_size
         self.channels_to_exclude = ['ball', 'trail'] if self.no_ball else ['trail']
         self.channels_to_keep = [i for key, i in self.channels.items() if key not in self.channels_to_exclude]
         self.time_limit = time_limit

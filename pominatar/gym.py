@@ -107,6 +107,7 @@ def register_envs():
             kwargs['no_ball'] = False
             kwargs['randomized_brick_map'] = False
             kwargs['flickering_ball'] = [0., 0.1, 0.25, 0.5, 0.75]
+            kwargs['easy'] = False
         if game == "seaquest":
             kwargs['oxygen_noise'] = False
         if game == "space_invaders":
