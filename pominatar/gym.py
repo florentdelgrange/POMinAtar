@@ -125,7 +125,6 @@ def register_envs():
                 for value in values:
                     _kwargs = kwargs.copy()
                     _kwargs[kwarg] = value
-                    print(kwarg, ":", value)
 
                     if kwarg == 'use_minimal_action_set' or not value:
                         kwarg_name = ''
